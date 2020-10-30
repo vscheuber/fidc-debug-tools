@@ -1,0 +1,79 @@
+#!/usr/bin/env node
+
+// Specify the full base URL of the FIDC service.
+const origin = 'https://openam-vsc.forgeblocks.com'
+
+// Specify the log API key and secret,
+// as described in https://backstage.forgerock.com/docs/idcloud/latest/paas/tenant/audit-logs.html#api-key
+const api_key_id = 'eecab52d666f5402ea158e34a441242f'
+const api_key_secret = '4f92a3532b69c0e705fe54217dfb9a2efd0a09ee071b9a84ec95a90b49ab48d9'
+
+/* Specify the logs' source, as described in https://backstage.forgerock.com/docs/idcloud/latest/paas/tenant/audit-logs.html#getting_sources
+
+Currently available sources are listed below.
+Uncomment the source you want to use.
+For development and debugging use "am-core" and "idm-core" respectively. */
+
+// const source = 'am-access'
+// const source = 'am-activity'
+// const source = 'am-authentication'
+// const source = 'am-config'
+// const source = 'am-core'
+// const source = 'am-everything'
+// const source = 'ctsstore'
+// const source = 'ctsstore-access'
+// const source = 'ctsstore-config-audit'
+// const source = 'ctsstore-upgrade'
+// const source = 'idm-access'
+// const source = 'idm-activity'
+// const source = 'idm-authentication'
+// const source = 'idm-config'
+const source = 'idm-core'
+// const source = 'idm-everything'
+// const source = 'idm-sync'
+// const source = 'userstore'
+// const source = 'userstore-access'
+// const source = 'userstore-config-audit'
+// const source = 'userstore-ldif-importer'
+// const source = 'userstore-upgrade'
+
+/**
+ * Function declaration.
+ * Processes the logs' content: filters, formats, etc.
+ * If undefined, a default one is applied defined in `tail.js`:
+ * @param {object} logsObject The object containing logs.
+ * @param {object[]} [logsObject.result] An array of logs.
+ * @param {string|object} [logsObject.result.payload] A log payload.
+ */
+const showLogs =
+    /**
+     * Processes the logs' content: filters, formats, etc.
+     * In this instance, prepares stringified JSON output for a command line tool like `jq`.
+     * @param {object} [logsObject] The object containing logs; expects an array of logs under the "result" key.
+     */
+    function ({
+        logsObject
+    }) {
+        if (Array.isArray(logsObject.result)) {
+            logsObject.result.forEach(log => {
+                console.log(JSON.stringify(log.payload))
+            })
+        } else {
+            console.log(JSON.stringify(logsObject))
+        }
+    }
+
+// End of user input.
+
+const tail = require('./tail.js')
+
+tail({
+    origin: origin,
+    api_key_id: api_key_id,
+    api_key_secret: api_key_secret,
+    source: source,
+    frequency: undefined,
+    exclude: true,
+    filter: undefined,
+    showLogs: showLogs
+})
