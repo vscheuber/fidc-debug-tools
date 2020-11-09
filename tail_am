@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 
 // Specify the full base URL of the FIDC service.
-const origin = 'https://openam-vsc.forgeblocks.com'
+const origin = 'https://openam-volker-dev.forgeblocks.com'
 
 // Specify the log API key and secret,
 // as described in https://backstage.forgerock.com/docs/idcloud/latest/paas/tenant/audit-logs.html#api-key
-const api_key_id = 'eecab52d666f5402ea158e34a441242f'
-const api_key_secret = '4f92a3532b69c0e705fe54217dfb9a2efd0a09ee071b9a84ec95a90b49ab48d9'
+const api_key_id = 'f8849f73bdcc3bafba0c0408fcae52e6'
+const api_key_secret = 'd462a15c6e7e2bca3e3f04006367419c7e0c0b7d47de454c27eebdbde5a026ee'
 
 /* Specify the logs' source, as described in https://backstage.forgerock.com/docs/idcloud/latest/paas/tenant/audit-logs.html#getting_sources
 
@@ -38,7 +38,7 @@ const source = 'am-core'
 // const source = 'userstore-ldif-importer'
 // const source = 'userstore-upgrade'
 
-const noise = [
+const misc_noise = [
   'text/plain',
   'com.iplanet.dpro.session.operations.ServerSessionOperationStrategy',
   'com.iplanet.dpro.session.SessionIDFactory',
@@ -68,6 +68,7 @@ const noise = [
   'com.sun.identity.idm.server.IdServicesImpl',
   'com.sun.identity.log.spi.ISDebug',
   'com.sun.identity.shared.encode.CookieUtils',
+  'com.sun.identity.sm.ldap.SMSLdapObject',
   'com.sun.identity.sm.CachedSMSEntry',
   'com.sun.identity.sm.CachedSubEntries',
   'com.sun.identity.sm.DNMapper',
@@ -78,6 +79,7 @@ const noise = [
   'com.sun.identity.sm.SmsWrapperObject',
   'oauth2',
   'org.apache.http.client.protocol.RequestAuthCache',
+  'org.apache.http.impl.conn.PoolingHttpClientConnectionManager',
   'org.apache.http.impl.nio.client.InternalHttpAsyncClient',
   'org.apache.http.impl.nio.client.InternalIODispatch',
   'org.apache.http.impl.nio.client.MainClientExec',
@@ -101,6 +103,8 @@ const noise = [
   'org.forgerock.openam.idrepo.ldap.DJLDAPv3Repo',
   'org.forgerock.openam.rest.CsrfFilter',
   'org.forgerock.openam.rest.restAuthenticationFilter',
+  'org.forgerock.openam.rest.fluent.CrestLoggingFilter',
+  'org.forgerock.openam.session.cts.CtsOperations',
   'org.forgerock.openam.session.stateless.StatelessSessionManager',
   'org.forgerock.openam.sm.datalayer.impl.ldap.ExternalLdapConfig',
   'org.forgerock.openam.sm.datalayer.impl.ldap.LdapQueryBuilder',
@@ -117,12 +121,46 @@ const noise = [
   'org.forgerock.secrets.SecretsProvider'
 ]
 
+const journeys_noise = [
+  'org.forgerock.openam.auth.trees.engine.AuthTreeExecutor'
+]
+
 const journeys = [
-    'org.forgerock.openam.auth.nodes.SelectIdPNode',
-    'org.forgerock.openam.auth.nodes.ValidatedPasswordNode',
-    'org.forgerock.openam.auth.nodes.ValidatedUsernameNode',
-    'org.forgerock.openam.auth.trees.engine.AuthTreeExecutor'
-  ]
+  'org.forgerock.openam.auth.nodes.SelectIdPNode',
+  'org.forgerock.openam.auth.nodes.ValidatedPasswordNode',
+  'org.forgerock.openam.auth.nodes.ValidatedUsernameNode',
+  'org.forgerock.openam.auth.trees.engine.AuthTreeExecutor'
+]
+
+const saml_noise = [
+  'com.sun.identity.cot.COTCache',
+  'com.sun.identity.plugin.configuration.impl.ConfigurationInstanceImpl',
+  'com.sun.identity.saml2.meta.SAML2MetaCache',
+  'com.sun.identity.saml2.profile.CacheCleanUpRunnable',
+  'org.apache.xml.security.keys.KeyInfo',
+  'org.apache.xml.security.signature.XMLSignature',
+  'org.apache.xml.security.utils.SignerOutputStream',
+  'org.apache.xml.security.utils.resolver.ResourceResolver',
+  'org.apache.xml.security.utils.resolver.implementations.ResolverFragment',
+  'org.apache.xml.security.algorithms.JCEMapper',
+  'org.apache.xml.security.algorithms.implementations.SignatureBaseRSA',
+  'org.apache.xml.security.algorithms.SignatureAlgorithm',
+  'org.apache.xml.security.utils.ElementProxy',
+  'org.apache.xml.security.transforms.Transforms',
+  'org.apache.xml.security.utils.DigesterOutputStream',
+  'org.apache.xml.security.signature.Reference',
+  'org.apache.xml.security.signature.Manifest'
+]
+
+const saml = [
+  'jsp.saml2.spAssertionConsumer',
+  'com.sun.identity.saml.common.SAMLUtils',
+  'com.sun.identity.saml2.common.SAML2Utils',
+  'com.sun.identity.saml2.meta.SAML2MetaManager',
+  'com.sun.identity.saml2.xmlsig.FMSigProvider'
+]
+
+const noise = misc_noise.concat(saml_noise).concat(journeys_noise)
 
 /**
  * Function declaration.
@@ -143,8 +181,8 @@ tail({
     api_key_id: api_key_id,
     api_key_secret: api_key_secret,
     source: source,
-    frequency: 2,
+    frequency: 10,
     exclude: true,
-    filter: noise,
+    filter: misc_noise,
     showLogs: showLogs
 })

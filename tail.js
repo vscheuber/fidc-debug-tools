@@ -8,8 +8,8 @@
  * @param {string} param0.api_key_secret For details, see: https://backstage.forgerock.com/docs/idcloud/latest/paas/tenant/audit-logs.html#api-key
  * @param {source} param0.source The logs' source, as described in https://backstage.forgerock.com/docs/idcloud/latest/paas/tenant/audit-logs.html#getting_sources
  * @param {number} [param0.frequency=10] The frequency (in seconds) with which the logs should be requested from the REST endpoint.
- * @param {boolean} [param0.exclude=true] Exclude filter if true, include otherwise
- * @param {array} [param0.filter=noise] Array of loggers to filter (exclude or include)
+ * @param {boolean} param0.exclude Exclude filter if true, include otherwise
+ * @param {array} param0.filter Array of loggers to filter (exclude or include)
  * @param {function} [param0.showLogs=showLogs(logsObject)] A function to output logs.
  */
 module.exports = function ({
@@ -40,15 +40,17 @@ module.exports = function ({
       var excluded = 0;
       logsObject.result.forEach(log => {
         if ( (exclude && (filter.includes(log.payload.logger) || filter.includes(log.type))) ||
-             (!exclude && !filter.includes(log.payload.logger && filter.includes(log.type))) ) {
+             (!exclude && (!filter.includes(log.payload.logger) || !filter.includes(log.type))) ) {
           excluded++
+          // console.log(JSON.stringify('EXCLUDED: exclude='+exclude+' filter includes '+log.payload.logger+'='+filter.includes(log.payload.logger)+' filter includes '+log.type+'='+filter.includes(log.type)))
         }
         else {
+          // console.log(JSON.stringify('INCLUDED: exclude='+exclude+' filter includes '+log.payload.logger+'='+filter.includes(log.payload.logger)+' filter includes '+log.type+'='+filter.includes(log.type)))
           console.log(JSON.stringify(log.payload))
         }
       })
       if (excluded>0) {
-        console.log('"Excluded ' + excluded + ' log events."')
+        console.log('"Filtered out ' + excluded + ' events."')
       }
     } else {
       console.log(JSON.stringify(logsObject))
