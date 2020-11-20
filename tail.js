@@ -12,125 +12,162 @@
  * @param {array} param0.filter Array of loggers to filter (exclude or include)
  * @param {function} [param0.showLogs=showLogs(logsObject)] A function to output logs.
  */
-module.exports = function ({
-  origin,
-  api_key_id,
-  api_key_secret,
-  source,
-  frequency,
-  exclude,
-  filter,
-  showLogs
+module.exports = function({
+    origin,
+    api_key_id,
+    api_key_secret,
+    source,
+    frequency,
+    exclude,
+    filter,
+    showLogs,
+    scriptonly
 }) {
 
-  frequency = frequency * 1000 || 10000
-  
-/**
- * Processes the logs' content: filters, formats, etc.
- * If no `showLogs` method is passed in arguments, is applied to the data received from the REST endpoint.
- * In this instance, prepares stringified JSON output for a command line tool like `jq`.
- * @param {object} logsObject The object containing logs.
- * @param {object[]} [logsObject.result] An array of logs.
- * @param {string|object} [logsObject.result.payload] A log payload.
- */
-  showLogs = showLogs || function ({
-    logsObject
-  }) {
-    if (Array.isArray(logsObject.result)) {
-      var excluded = 0;
-      logsObject.result.forEach(log => {
-        if ( (exclude && (filter.includes(log.payload.logger) || filter.includes(log.type))) ||
-             (!exclude && (!filter.includes(log.payload.logger) || !filter.includes(log.type))) ) {
-          excluded++
-          // console.log(JSON.stringify('EXCLUDED: exclude='+exclude+' filter includes '+log.payload.logger+'='+filter.includes(log.payload.logger)+' filter includes '+log.type+'='+filter.includes(log.type)))
-        }
-        else {
-          // console.log(JSON.stringify('INCLUDED: exclude='+exclude+' filter includes '+log.payload.logger+'='+filter.includes(log.payload.logger)+' filter includes '+log.type+'='+filter.includes(log.type)))
-          console.log(JSON.stringify(log.payload))
-        }
-      })
-      if (excluded>0) {
-        console.log('"Filtered out ' + excluded + ' events."')
-      }
-    } else {
-      console.log(JSON.stringify(logsObject))
-    }
-  }
+    frequency = frequency * 1000 || 10000
 
-  /**
-   * @returns {string} Concatenated query string parameters.
-   */
-  function getParams() {
-    return Object.keys(params).map((key) => {
-      if (params[key]) {
-        return (key + "=" + encodeURIComponent(params[key]))
-      }
-    }).join("&")
-  }
-
-  /**
-   * Obtains logs from the '/monitoring/logs/tail' endpoint.
-   * Keeps track of the last request's `pagedResultsCookie` to avoid overlaps in the delivered content.
-   */
-  function getLogs() {
-    // Authorization options.
-    const options = {
-      headers: {
-        'x-api-key': api_key_id,
-        'x-api-secret': api_key_secret
-      }
-    }
-
-    // The API call.
-    http.get(
-      origin + '/monitoring/logs/tail?' + getParams(),
-      options,
-      (res) => {
-        var data = ''
-
-        // To avoid dependencies, use the native module and receive data in chunks.
-        res.on('data', (chunk) => {
-          data += chunk
-        })
-
-        // Process the data when the entire response has been received.
-        res.on('end', () => {
-          var logsObject
-
-          try {
-            logsObject = JSON.parse(data)
-          } catch (e) {
-            logsObject = {
-              "scriptError": String(e)
+    /**
+     * Processes the logs' content: filters, formats, etc.
+     * If no `showLogs` method is passed in arguments, is applied to the data received from the REST endpoint.
+     * In this instance, prepares stringified JSON output for a command line tool like `jq`.
+     * @param {object} logsObject The object containing logs.
+     * @param {object[]} [logsObject.result] An array of logs.
+     * @param {string|object} [logsObject.result.payload] A log payload.
+     */
+    showLogs = showLogs || function({
+        logsObject
+    }) {
+        if (Array.isArray(logsObject.result)) {
+            //console.log(`"${logsObject.result.length}"`);
+            let excluded = 0;
+            logsObject.result.forEach(log => {
+                if (scriptonly) {
+                    const scriptRegex = /scripts.*/g;
+                    if (log.payload.logger) {
+                        if (log.payload.logger.match(scriptRegex)) {
+                            console.log(JSON.stringify(log.payload))
+                        } else excluded++;
+                    } else excluded++;
+                } else {
+                    if ((exclude && (filter.includes(log.payload.logger) || filter.includes(log.type))) ||
+                        (!exclude && (!filter.includes(log.payload.logger) || !filter.includes(log.type)))) {
+                        excluded++
+                        // console.log(JSON.stringify('EXCLUDED: exclude='+exclude+' filter includes '+log.payload.logger+'='+filter.includes(log.payload.logger)+' filter includes '+log.type+'='+filter.includes(log.type)))
+                    } else {
+                        // console.log(JSON.stringify('INCLUDED: exclude='+exclude+' filter includes '+log.payload.logger+'='+filter.includes(log.payload.logger)+' filter includes '+log.type+'='+filter.includes(log.type)))
+                        console.log(JSON.stringify(log.payload))
+                    }
+                }
+            })
+            if (excluded > 0) {
+                console.log('"Filtered out ' + excluded + ' events."')
             }
-          }
+        } else {
+            console.log(JSON.stringify(logsObject))
+        }
+    }
 
-          showLogs({
-            logsObject
-          })
+    /**
+     * @returns {string} Concatenated query string parameters.
+     */
+    function getParams() {
+        return Object.keys(params).map((key) => {
+            if (params[key]) {
+                return (key + "=" + encodeURIComponent(params[key]))
+            }
+        }).join("&")
+    }
 
-          // Set the _pagedResultsCookie query parameter for the next request
-          // to retrieve all records stored since the last one.
-          params._pagedResultsCookie = logsObject.pagedResultsCookie
-        })
-      }
-    )
+    /**
+     * Obtains logs from the '/monitoring/logs/tail' endpoint.
+     * Keeps track of the last request's `pagedResultsCookie` to avoid overlaps in the delivered content.
+     */
+    function getLogs() {
+        // Authorization options.
+        let rateLimit = 0;
+        let rateLimitRemaining = 0;
+        let rateLimitReset = 0;
+        const options = {
+            headers: {
+                'x-api-key': api_key_id,
+                'x-api-secret': api_key_secret
+            }
+        }
 
-    setTimeout(getLogs, frequency)
-  }
+        // The API call.
+        http.get(
+            origin + '/monitoring/logs?' + getParams(),
+            options,
+            (res) => {
+                // console.log(res.headers);
+                rateLimit = parseInt(res.headers['x-ratelimit-limit']);
+                rateLimitRemaining = parseInt(res.headers['x-ratelimit-remaining']);
+                rateLimitReset = parseInt(res.headers['x-ratelimit-reset']);
+                rateLimitReset = rateLimitReset * 1000;
+                var data = ''
 
-  /**
-   * Derives a native module name from the origin; 'http' or 'https' is expected.
-   */
-  const moduleName = (new URL(origin)).protocol.split(':')[0]
-  const http = require(moduleName)
+                // To avoid dependencies, use the native module and receive data in chunks.
+                res.on('data', (chunk) => {
+                    data += chunk
+                })
 
-  /**
-   * Defines URL query string params.
-   */
-  var params = {
-    source: source
-  }
+                // Process the data when the entire response has been received.
+                res.on('end', () => {
+                    var logsObject
 
-  getLogs()
+                    try {
+                        logsObject = JSON.parse(data)
+                    } catch (e) {
+                        logsObject = {
+                            "scriptError": String(e)
+                        }
+                    }
+                    showLogs({
+                        logsObject
+                    })
+                    delete params.beginTime;
+
+                    // Set the _pagedResultsCookie query parameter for the next request
+                    // to retrieve all records stored since the last one.
+                    params._pagedResultsCookie = logsObject.pagedResultsCookie
+                })
+                setTimeout(getLogs, getTimeout(rateLimitReset));
+            }
+        )
+
+        // setTimeout(getLogs, frequency)
+    }
+
+    function getStartTS() {
+        let startts = new Date();
+        startts = new Date(startts.getTime() - 10000);
+        let startstr = startts.toISOString();
+        console.log('"start: ' + startstr + '"');
+        return (startstr);
+    }
+
+    function getTimeout(rateLimitReset) {
+        const rightNow = Date.now();
+        let timeout = 0;
+        timeout = rateLimitReset - rightNow;
+        timeout = timeout < 0 ? 0 : timeout;
+        console.error(`"next in ${timeout}ms"`);
+        return timeout;
+    }
+    /**
+     * Derives a native module name from the origin; 'http' or 'https' is expected.
+     */
+    const moduleName = (new URL(origin)).protocol.split(':')[0]
+    const http = require(moduleName)
+
+    /**
+     * Defines URL query string params.
+     */
+    var params = {
+        source: source,
+        beginTime: getStartTS()
+            // endTime: logTimeStamp.end // the dafault in log API is 1hr from begineTime
+    }
+
+    getLogs()
 }
