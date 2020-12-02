@@ -7,7 +7,7 @@
  * @param {string} param0.api_key_id For details, see: https://backstage.forgerock.com/docs/idcloud/latest/paas/tenant/audit-logs.html#api-key
  * @param {string} param0.api_key_secret For details, see: https://backstage.forgerock.com/docs/idcloud/latest/paas/tenant/audit-logs.html#api-key
  * @param {source} param0.source The logs' source, as described in https://backstage.forgerock.com/docs/idcloud/latest/paas/tenant/audit-logs.html#getting_sources
- * @param {number} [param0.frequency=10] The frequency (in seconds) with which the logs should be requested from the REST endpoint.
+ * @param {number} [param0.frequency=2] The frequency (in seconds) with which the logs should be requested from the REST endpoint.
  * @param {boolean} param0.exclude Exclude filter if true, include otherwise
  * @param {array} param0.filter Array of loggers to filter (exclude or include)
  * @param {function} [param0.showLogs=showLogs(logsObject)] A function to output logs.
@@ -96,14 +96,13 @@ module.exports = function({
 
         // The API call.
         http.get(
-            origin + '/monitoring/logs?' + getParams(),
+            origin + '/monitoring/logs/tail?' + getParams(),
             options,
             (res) => {
                 // console.log(res.headers);
                 rateLimit = parseInt(res.headers['x-ratelimit-limit']);
                 rateLimitRemaining = parseInt(res.headers['x-ratelimit-remaining']);
-                rateLimitReset = parseInt(res.headers['x-ratelimit-reset']);
-                rateLimitReset = rateLimitReset * 1000;
+                rateLimitReset = parseInt(res.headers['x-ratelimit-reset']) * 1000;
                 var data = ''
 
                 // To avoid dependencies, use the native module and receive data in chunks.
@@ -134,8 +133,6 @@ module.exports = function({
                 setTimeout(getLogs, getTimeout(rateLimitReset));
             }
         )
-
-        // setTimeout(getLogs, frequency)
     }
 
     function getStartTS() {
@@ -151,7 +148,8 @@ module.exports = function({
         let timeout = 0;
         timeout = rateLimitReset - rightNow;
         timeout = timeout < 0 ? 0 : timeout;
-        console.error(`"next in ${timeout}ms"`);
+        timeout = timeout < frequency ? frequency : timeout;
+        // console.error(`"next in ${timeout}ms"`);
         return timeout;
     }
     /**

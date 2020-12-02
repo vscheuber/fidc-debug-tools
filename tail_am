@@ -19,8 +19,8 @@ For development and debugging use "am-core" and "idm-core" respectively.
 // const source = 'am-activity'
 // const source = 'am-authentication'
 // const source = 'am-config'
-// const source = 'am-core'
-const source = 'am-everything'
+const source = 'am-core'
+// const source = 'am-everything'
 // const source = 'ctsstore'
 // const source = 'ctsstore-access'
 // const source = 'ctsstore-config-audit'
@@ -227,7 +227,7 @@ tail({
     api_key_id: api_key_id,
     api_key_secret: api_key_secret,
     source: source,
-    frequency: 10,
+    frequency: 1,
     exclude: true,
     filter: noise,
     showLogs: showLogs,
