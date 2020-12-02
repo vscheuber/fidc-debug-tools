@@ -124,7 +124,6 @@ module.exports = function({
                     showLogs({
                         logsObject
                     })
-                    delete params.beginTime;
 
                     // Set the _pagedResultsCookie query parameter for the next request
                     // to retrieve all records stored since the last one.
@@ -162,9 +161,7 @@ module.exports = function({
      * Defines URL query string params.
      */
     var params = {
-        source: source,
-        beginTime: getStartTS()
-            // endTime: logTimeStamp.end // the dafault in log API is 1hr from begineTime
+        source: source
     }
 
     getLogs()

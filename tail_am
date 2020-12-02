@@ -1,12 +1,15 @@
 #!/usr/bin/env node
 
 // Specify the full base URL of the FIDC service.
-const origin = 'https://openam-volker-dev.forgeblocks.com'
+// const origin = 'https://openam-volker-dev.forgeblocks.com'
+const origin = 'https://openam-vsc.forgeblocks.com'
 
 // Specify the log API key and secret,
 // as described in https://backstage.forgerock.com/docs/idcloud/latest/paas/tenant/audit-logs.html#api-key
-const api_key_id = 'f8849f73bdcc3bafba0c0408fcae52e6'
-const api_key_secret = 'd462a15c6e7e2bca3e3f04006367419c7e0c0b7d47de454c27eebdbde5a026ee'
+// const api_key_id = '2b8b8bba423680305e678be18e80c8bd'
+// const api_key_secret = 'cfb8ec126de8bdd829b0386a5dbf9f0eb6fe7b8a16ba9c560b7f65949e607984'
+const api_key_id = 'eecab52d666f5402ea158e34a441242f'
+const api_key_secret = '4f92a3532b69c0e705fe54217dfb9a2efd0a09ee071b9a84ec95a90b49ab48d9'
 
 /* Specify the logs' source, as described in https://backstage.forgerock.com/docs/idcloud/latest/paas/tenant/audit-logs.html#getting_sources
 
@@ -227,7 +230,7 @@ tail({
     api_key_id: api_key_id,
     api_key_secret: api_key_secret,
     source: source,
-    frequency: 1,
+    frequency: 5,
     exclude: true,
     filter: noise,
     showLogs: showLogs,
