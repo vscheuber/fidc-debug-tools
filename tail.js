@@ -38,7 +38,7 @@ module.exports = function({
         logsObject
     }) {
         if (Array.isArray(logsObject.result)) {
-            //console.log(`"${logsObject.result.length}"`);
+            //console.error(`${logsObject.result.length}`);
             let excluded = 0;
             logsObject.result.forEach(log => {
                 if (scriptonly) {
@@ -52,15 +52,15 @@ module.exports = function({
                     if ((exclude && (filter.includes(log.payload.logger) || filter.includes(log.type))) ||
                         (!exclude && (!filter.includes(log.payload.logger) || !filter.includes(log.type)))) {
                         excluded++
-                        // console.log(JSON.stringify('EXCLUDED: exclude='+exclude+' filter includes '+log.payload.logger+'='+filter.includes(log.payload.logger)+' filter includes '+log.type+'='+filter.includes(log.type)))
+                        // console.error('EXCLUDED: exclude='+exclude+' filter includes '+log.payload.logger+'='+filter.includes(log.payload.logger)+' filter includes '+log.type+'='+filter.includes(log.type))
                     } else {
-                        // console.log(JSON.stringify('INCLUDED: exclude='+exclude+' filter includes '+log.payload.logger+'='+filter.includes(log.payload.logger)+' filter includes '+log.type+'='+filter.includes(log.type)))
+                        // console.error('INCLUDED: exclude='+exclude+' filter includes '+log.payload.logger+'='+filter.includes(log.payload.logger)+' filter includes '+log.type+'='+filter.includes(log.type))
                         console.log(JSON.stringify(log.payload))
                     }
                 }
             })
             if (excluded > 0) {
-                console.log('"Filtered out ' + excluded + ' events."')
+                console.error('Filtered out ' + excluded + ' events.')
             }
         } else {
             console.log(JSON.stringify(logsObject))
@@ -134,14 +134,6 @@ module.exports = function({
         )
     }
 
-    function getStartTS() {
-        let startts = new Date();
-        startts = new Date(startts.getTime() - 10000);
-        let startstr = startts.toISOString();
-        console.log('"start: ' + startstr + '"');
-        return (startstr);
-    }
-
     function getTimeout(rateLimitReset) {
         const rightNow = Date.now();
         let timeout = 0;
@@ -164,5 +156,6 @@ module.exports = function({
         source: source
     }
 
+    console.error("origin=%s key=%s freq=%dms src=%s filter=%s scriptonly=%s", origin, api_key_id, frequency, source, (exclude ? 'exclude' : 'include'), scriptonly)
     getLogs()
 }

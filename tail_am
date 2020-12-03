@@ -1,15 +1,13 @@
 #!/usr/bin/env node
+require('dotenv').config()
 
 // Specify the full base URL of the FIDC service.
-// const origin = 'https://openam-volker-dev.forgeblocks.com'
-const origin = 'https://openam-vsc.forgeblocks.com'
+const origin = process.env.ORIGIN;
 
 // Specify the log API key and secret,
 // as described in https://backstage.forgerock.com/docs/idcloud/latest/paas/tenant/audit-logs.html#api-key
-// const api_key_id = '2b8b8bba423680305e678be18e80c8bd'
-// const api_key_secret = 'cfb8ec126de8bdd829b0386a5dbf9f0eb6fe7b8a16ba9c560b7f65949e607984'
-const api_key_id = 'eecab52d666f5402ea158e34a441242f'
-const api_key_secret = '4f92a3532b69c0e705fe54217dfb9a2efd0a09ee071b9a84ec95a90b49ab48d9'
+const api_key_id = process.env.API_KEY_ID;
+const api_key_secret = process.env.API_KEY_SECRET;
 
 /* Specify the logs' source, as described in https://backstage.forgerock.com/docs/idcloud/latest/paas/tenant/audit-logs.html#getting_sources
 
