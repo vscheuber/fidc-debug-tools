@@ -88,6 +88,8 @@ const misc_noise = [
     'org.apache.http.impl.nio.conn.ManagedNHttpClientConnectionImpl',
     'org.apache.http.impl.nio.conn.PoolingNHttpClientConnectionManager',
     'org.forgerock.audit.AuditServiceImpl',
+    'org.forgerock.bloomfilter.ConcurrentRollingBloomFilter',
+    'org.forgerock.bloomfilter.ExpiringBloomFilter',
     'org.forgerock.oauth2.core.RealmOAuth2ProviderSettings',
     'org.forgerock.openam.authentication.service.JAASModuleDetector',
     'org.forgerock.openam.authentication.service.LoginContextFactory',
@@ -187,7 +189,6 @@ const saml_noise = [
 
 const script_noise = [
     'org.forgerock.openam.scripting.sandbox.RhinoSandboxClassShutter',
-    // 'org.forgerock.openam.auth.nodes.ScriptedDecisionNode',
     'org.forgerock.openam.cors.CorsService',
     'com.sun.identity.sm.OrganizationConfigManagerImpl',
     'org.forgerock.openam.scripting.StandardScriptEvaluator',
@@ -195,7 +196,8 @@ const script_noise = [
 ];
 
 const scripted_node = [
-    'scripts.AUTHENTICATION_TREE_DECISION_NODE'
+    'scripts.AUTHENTICATION_TREE_DECISION_NODE',
+    'org.forgerock.openam.auth.nodes.ScriptedDecisionNode'
 ]
 
 const saml = [
@@ -207,6 +209,7 @@ const saml = [
 ]
 
 const noise = misc_noise.concat(saml_noise).concat(journeys_noise).concat(script_noise).concat(oidc_noise).concat(auth_noise);
+const nofilter = [];
 
 /**
  * Function declaration.
@@ -227,9 +230,9 @@ tail({
     api_key_id: api_key_id,
     api_key_secret: api_key_secret,
     source: source,
-    frequency: 5,
+    frequency: 10,
     exclude: true,
-    filter: noise,
+    filter: misc_noise,
     showLogs: showLogs,
     scriptonly: false
 })
