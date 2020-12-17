@@ -80,7 +80,6 @@ const misc_noise = [
     'com.sun.identity.sm.SMSEntry',
     'com.sun.identity.sm.SMSUtils',
     'com.sun.identity.sm.SmsWrapperObject',
-    'oauth2',
     'org.apache.http.client.protocol.RequestAuthCache',
     'org.apache.http.impl.conn.PoolingHttpClientConnectionManager',
     'org.apache.http.impl.nio.client.InternalHttpAsyncClient',
