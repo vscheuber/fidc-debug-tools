@@ -21,7 +21,7 @@ Modify the sample `.env` file provided in this repository to match your environm
 ORIGIN=https://openam-volker-dev.forgeblocks.com
 
 # Specify the log API key and secret,
-# as described in https://backstage.forgerock.com/docs/idcloud/latest/paas/tenant/audit-logs.html#api-key
+# as described in https://backstage.forgerock.com/docs/idcloud/latest/developer-docs/postman-collection.html#obtaining_am_api_credentials
 API_KEY_ID=2b8b8bba423680305e678be18e80c8be
 API_KEY_SECRET=cfb8ec126de8bdd829b0386a5dbf9f0eb6fe7b8a16ba9c560b7f65949e607985
 ```
