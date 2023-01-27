@@ -94,46 +94,53 @@ module.exports = function({
             }
         }
 
-        // The API call.
-        http.get(
-            origin + '/monitoring/logs/tail?' + getParams(),
-            options,
-            (res) => {
-                // console.log(res.headers);
-                rateLimit = parseInt(res.headers['x-ratelimit-limit']);
-                rateLimitRemaining = parseInt(res.headers['x-ratelimit-remaining']);
-                rateLimitReset = parseInt(res.headers['x-ratelimit-reset']) * 1000 | frequency;
-                var data = ''
+        try{
+            // The API call.
+            http.get(
+                origin + '/monitoring/logs/tail?' + getParams(),
+                options,
+                (res) => {
+                    // console.log(res.headers);
+                    rateLimit = parseInt(res.headers['x-ratelimit-limit']);
+                    rateLimitRemaining = parseInt(res.headers['x-ratelimit-remaining']);
+                    rateLimitReset = parseInt(res.headers['x-ratelimit-reset']) * 1000 | frequency;
+                    var data = ''
 
-                // To avoid dependencies, use the native module and receive data in chunks.
-                res.on('data', (chunk) => {
-                    data += chunk
-                })
-
-                // Process the data when the entire response has been received.
-                res.on('end', () => {
-                    var logsObject
-
-                    try {
-                        logsObject = JSON.parse(data)
-                    } catch (e) {
-                        logsObject = {
-                            "scriptError": String(e)
-                        }
-                    }
-                    showLogs({
-                        logsObject
+                    // To avoid dependencies, use the native module and receive data in chunks.
+                    res.on('data', (chunk) => {
+                        data += chunk
                     })
 
-                    // Set the _pagedResultsCookie query parameter for the next request
-                    // to retrieve all records stored since the last one.
-                    if (logsObject.pagedResultsCookie) {
-                        params._pagedResultsCookie = logsObject.pagedResultsCookie;
-                    }
-                })
-                setTimeout(getLogs, getTimeout(rateLimitReset));
-            }
-        )
+                    // Process the data when the entire response has been received.
+                    res.on('end', () => {
+                        var logsObject
+
+                        try {
+                            logsObject = JSON.parse(data)
+                        } catch (e) {
+                            logsObject = {
+                                "scriptError": String(e)
+                            }
+                        }
+                        showLogs({
+                            logsObject
+                        })
+
+                        // Set the _pagedResultsCookie query parameter for the next request
+                        // to retrieve all records stored since the last one.
+                        if (logsObject.pagedResultsCookie) {
+                            params._pagedResultsCookie = logsObject.pagedResultsCookie;
+                        }
+                    })
+                    setTimeout(getLogs, getTimeout(rateLimitReset));
+                }
+            );
+        } catch (e){
+            showLogs({
+                "scriptError": String(e)
+            })
+            
+        }
     }
 
     function getTimeout(rateLimitReset) {
